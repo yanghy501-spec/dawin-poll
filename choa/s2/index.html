@@ -91,6 +91,8 @@ footer{margin-top:22px;font-size:12px;color:var(--ink-3);line-height:1.6}
 .pollbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:14px;padding:12px 14px;border:1.5px solid var(--navy);border-radius:12px;color:var(--navy);text-decoration:none;font-weight:800;font-size:15px;background:var(--paper)}
 .pollbar small{font-weight:500;font-size:12px;color:var(--ink-3)}
 .pollbar:active{background:var(--surf)}
+.card .free{font-weight:500;color:var(--ink-3);font-size:14px;margin-left:4px}
+#fill textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;font-size:15px;background:var(--bg);color:var(--ink);resize:vertical}
 </style>
 </head>
 <body>
@@ -119,14 +121,14 @@ footer{margin-top:22px;font-size:12px;color:var(--ink-3);line-height:1.6}
     <div><b>스탭에게 받은 도움</b><small>준 사람이 스탭이면 그 줄의 「스탭」을 누르세요.</small></div>
     <div class="n"><span id="cnt">0</span><small>개</small></div>
   </div>
-  <a class="btn primary" id="toPoll" href="https://yanghy501-spec.github.io/dawin-poll/?r=CHOA02" target="_blank" rel="noopener">투표에서 「<span id="bucket">0번</span>」 고르기</a>
+  <a class="btn primary" id="toPoll" href="https://yanghy501-spec.github.io/dawin-poll/?r=CHOA02" target="_blank" rel="noopener">투표에서 「<span id="bucket">0개</span>」 고르기</a>
   <div class="saved" id="saved1"></div>
 </section>
 
 <!-- ② 문장 카드 -->
 <section class="panel" id="p2" hidden>
   <h2>어제 그 일로, 한마디</h2>
-  <p class="hint">하나 골라 빈칸을 채우세요. 완성된 문장이 아래에 나옵니다. 옆 사람에게 그대로 말하면 돼요. 1~4는 스탭 선생님에게, 5~6은 선배 선생님에게.</p>
+  <p class="hint">하나 골라 빈칸을 채우세요. 완성된 문장이 아래에 나옵니다. 옆 사람에게 그대로 말하면 돼요. 1~4는 스탭 선생님에게, 5~6은 선배 선생님에게, 7은 내 말로 직접.</p>
   <div class="cards" id="cards"></div>
   <div class="fill" id="fill"></div>
   <div class="preview"><small>완성된 문장</small><span id="pv">카드를 하나 고르세요</span></div>
@@ -179,7 +181,7 @@ footer{margin-top:22px;font-size:12px;color:var(--ink-3);line-height:1.6}
 
   /* ① rows */
   var rows=document.getElementById("rows"), cnt=document.getElementById("cnt"), bucket=document.getElementById("bucket");
-  function bucketOf(n){ return n===0?"0번":n<=2?"1~2번":n<=4?"3~4번":"5번 이상"; }
+  function bucketOf(n){ return n===0?"0개":n<=2?"1~2개":n<=4?"3~4개":"5개 이상"; }
   function renderRows(){
     rows.innerHTML="";
     st.rows.forEach(function(r,i){
@@ -204,10 +206,11 @@ footer{margin-top:22px;font-size:12px;color:var(--ink-3);line-height:1.6}
     ["",        " 타이밍 알려 줘서 펌이 딱 맞게 나왔어. 진짜 도움 됐어!", "", "예) 중화", null],
     ["마감 때 ", " 정리해 줘서 제시간에 퇴근했어. 매번 고마워!", "", "예) 타올", null],
     ["선생님이 "," 알려 주셔서 실수 안 했어요. 감사해요!", "", "예) 약제", null],
-    ["",        " 먼저 하라고 해 주셔서 안 헤맸어요. 늘 감사해요~", "", "예) 샴푸", null]
+    ["",        " 먼저 하라고 해 주셔서 안 헤맸어요. 늘 감사해요~", "", "예) 샴푸", null],
+    ["", "", "", "예) 아까 손님 머리 말려 줘서 바로 다음 손님 받았어. 고마워!", null, "free"]
   ];
   var cards=document.getElementById("cards"), fill=document.getElementById("fill"), pv=document.getElementById("pv");
-  function cardHTML(t){ return t[0]+"<u></u>"+t[1]+(t[4]?"<u></u>":"")+t[2]; }
+  function cardHTML(t){ if(t[5]==="free") return "직접 쓰기 <span class=\"free\">내 말로 한 문장</span>"; return t[0]+"<u></u>"+t[1]+(t[4]?"<u></u>":"")+t[2]; }
   T.forEach(function(t,i){
     var c=document.createElement("div"); c.className="card"; c.setAttribute("role","button"); c.setAttribute("aria-selected", st.card===i?"true":"false");
     c.innerHTML='<span class="n">'+(i+1)+'</span><p>'+cardHTML(t)+'</p>';
@@ -219,11 +222,11 @@ footer{margin-top:22px;font-size:12px;color:var(--ink-3);line-height:1.6}
     fill.innerHTML="";
     if(st.card===null){ pv.textContent="카드를 하나 고르세요"; return; }
     var t=T[st.card];
-    var a=document.createElement("input"); a.placeholder=t[3]; a.value=st.a; a.addEventListener("input",function(){ st.a=a.value; renderPv(); save(s2); }); fill.appendChild(a);
+    var a=document.createElement(t[5]==="free"?"textarea":"input"); a.placeholder=t[3]; a.value=st.a; if(t[5]==="free") a.rows=3; a.addEventListener("input",function(){ st.a=a.value; renderPv(); save(s2); }); fill.appendChild(a);
     if(t[4]){ var b=document.createElement("input"); b.placeholder=t[4]; b.value=st.b; b.addEventListener("input",function(){ st.b=b.value; renderPv(); save(s2); }); fill.appendChild(b); }
     renderPv();
   }
-  function sentence(){ if(st.card===null) return ""; var t=T[st.card]; return t[0]+(st.a||"＿＿")+t[1]+(t[4]?(st.b||"＿＿"):"")+t[2]; }
+  function sentence(){ if(st.card===null) return ""; var t=T[st.card]; if(t[5]==="free") return st.a||"여기에 쓴 문장이 나옵니다"; return t[0]+(st.a||"＿＿")+t[1]+(t[4]?(st.b||"＿＿"):"")+t[2]; }
   function renderPv(){ pv.textContent=sentence(); }
   renderFill();
   var big=document.getElementById("big"), bigTxt=document.getElementById("bigTxt");
